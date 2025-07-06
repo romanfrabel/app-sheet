@@ -24,7 +24,7 @@ Returns an object with the following properties
 - `content` (`object[]`) An array of objects representing the table rows
 - `rowsReturned` (`number`) The number of rows that were returned
 
-Example
+Example Return Value
 ```js
 {
   code: 200,
@@ -60,8 +60,8 @@ const data = AppSheet.find('users', "STARTSWITH([last_name],F)", "first_name", T
 
 ```
 
-# `add(tableName, records)`
-Adds one or more records to a table
+### `add(tableName, records)`
+Adds one or more records to a table. The `records` parameter may be a single object or an array of objects.
 
 #### Parameters
 - `tableName` (`string`) Required. The name of the table to add records to.
@@ -76,7 +76,7 @@ const newUser = {
   last_name: "Doe",
   email: "johndoe@example.com
 }
-const data = AppSheet.add('users',newUser)
+const newRows = AppSheet.add('users',newUser)
 ```
 
 # `update()`
