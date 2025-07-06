@@ -3,30 +3,77 @@ Interface for easily working with AppsSheet API in Google Apps Script
 
 | Method  | Return type |
 | ------------- | ------------- |
-| `findAll(tableOrSlice)`  | Object  |
-| `add()` | Object |
+| `find(tableName, [filterCondition], [orderBy], [desc], [limit])`  | Object  |
+| `add(tableName, records)` | Object |
 | `update()` | Object |
 | `delete()`  | Content Cell  |
 
-# `findAll(tableOrSlice)`
+### `find(tableName, [filterCondition], [orderBy], [desc], [limit])`
 Fetches all records from a table or slice.
 
-### Parameters
-- `tableOrSlice` (`string`) - The name of the database table or slice to fetch records from
+#### Parameters
+- `tableName` (`string`) - Required. The name of the table or slice to fetch records from.
+- `filterCondition` (`string`) Optional. A condition that evaluates to true or false to determine which rows to include. If ommitted, all rows are returned. To omit filtering while accessing additional parameters, provide "TRUE" as the filterCondition to inlcude all rows.
+- `orderBy` (`string`) Optional. The name of the column to order the results by.
+- `desc` (`boolean`) Optional. Whether to enforce descending order (defaults to FALSE).
+- `limit` (`number`) Optional. The maximum number of rows to include.
+
+#### Returns (`object`)
+Returns an object with the following properties
+- `code` (`number`) The HTTP status code returned by the server
+- `content` (`object[]`) An array of objects representing the table rows
+- `rowsReturned` (`number`) The number of rows that were returned
+
+Example
+```js
+{
+  code: 200,
+  rowsReturned: 1,
+  content: [
+    {
+      _RowNumber: 27,
+      first_name: "John",
+      last_name: "Smith",
+      email: jsmith@example.com
+    }
+  ]
+}
+```
+
+#### Sample useage
 
 ```js
-//Fetches all records in the table with the name 'users'
-const data = AppSheet.findAll('users');
+//Fetches all records in the 'users' table
+const data = AppSheet.find('users');
+
+//Fetches only records where the users [last_name] column begins with "F"
+const data = AppSheet.find('users', "STARTSWITH([last_name],F)" );
+
+//Fetches all rows, sorted by [created_on] in the default ascending order
+const data = AppSheet.find("users", "TRUE", "created_on");
+
+//Fetches users with a last name beginning with "F", ordered by [first_name], descending
+const data = AppSheet.find('users', "STARTSWITH([last_name],F)", "first_name", TRUE );
+
+//Fetches the first 10 users with a last name beginning with "F", ordered by [first_name], descending
+const data = AppSheet.find('users', "STARTSWITH([last_name],F)", "first_name", TRUE, 10);
+
 ```
 
 # `add(tableName, records)`
 Adds one or more records to a table
 
+#### Parameters
+- `tableName` (`string`) Required. The name of the table to add records to.
+- `records` (`object` or `object[]`) Required. The object or array of objects that represent the rows to be added to the table.
+
+#### Returns (`object`)
+
 ```js
 //Fetches all records in the table with the name 'users'
 const newUser = {
-  firstName: "John",
-  lastName: "Doe",
+  first_name: "John",
+  last_name: "Doe",
   email: "johndoe@example.com
 }
 const data = AppSheet.add('users',newUser)
