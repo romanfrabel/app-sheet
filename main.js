@@ -12,31 +12,41 @@
  * 
  * @namespace AppSheet
  */
+/**
+ * AppSheet API abstraction layer for Google Apps Script.
+ */
 const AppSheet = (() => {
   const CONFIG = {
-    apiKey: "", //<-- Insert the API key for your AppSheet application
-    appId: "", //<-- Insert the App ID for your AppSheet application
-    region: "", // <-- Data region, must be "www.appsheet.com" or "eu.appsheet.com"
-    maxRetries: 2, //<--Max retries for failed API calls
+    apiKey: "", // <-- Fill in your API key
+    appId: "98c5f507-7163-4f46-ab8b-f946a9839222",
+    region: "www.appsheet.com", // Global region
+    maxRetries: 2,
   };
 
   const BASE_URL = `https://${CONFIG.region}/api/v2/apps/${CONFIG.appId}/tables`;
 
-  // Normalize records: always return an array
   function normalizeRecords(input) {
     if (!input) return [];
     return Array.isArray(input) ? input : [input];
   }
 
-  function makeRequest({ table, action, rows = [], method = "post" }) {
+  function makeRequest({ table, action, rows = [], selector = null, method = "post" }) {
     const url = `${BASE_URL}/${table}/Action`;
-    const payload = JSON.stringify({ Action: action, Rows: rows });
+
+    const payload = {
+      Action: action,
+      Rows: rows,
+    };
+
+    if (selector) {
+      payload.Properties = { Selector: selector };
+    }
 
     const options = {
       method,
       contentType: "application/json",
       muteHttpExceptions: true,
-      payload,
+      payload: JSON.stringify(payload),
       headers: {
         ApplicationAccessKey: CONFIG.apiKey,
       },
@@ -60,75 +70,67 @@ const AppSheet = (() => {
 
     const code = response.getResponseCode();
     const contentText = response.getContentText();
-    const content = JSONParser?.toParsed?.(contentText) ?? contentText;
+    const content = JSON.parse(contentText);
     const rowsReturned = Array.isArray(content) ? content.length : 0;
 
     return { code, content, rowsReturned };
   }
-  
-    /**
-   * Fetches all records from a table or slice.
-   *
-   * @param {string} tableOrSlice - Name of the table or slice.
-   * @returns {{code: number, content: any, rowsReturned: number}} API response object.
-   */
-  function findAll (tableOrSlice) {
-    return makeRequest({ table: tableOrSlice, action: "Find" });
-  }
-  
+
   /**
-   * Adds one or more records to a table.
+   * Finds rows with optional filter, order, and limit using Selector.
    *
-   * @param {string} tableName - Name of the target table.
-   * @param {Object|Object[]} records - A record or array of records to add.
-   * @returns {{code: number, content: any, rowsReturned: number}} API response object.
+   * @param {string} tableName - Table or slice name.
+   * @param {string} [filterCondition] - e.g., [last_name] = "Smith"
+   * @param {string} [orderBy] - Column name to order by.
+   * @param {boolean} [desc=false] - Order descending if true.
+   * @param {number} [limit] - Max rows to return.
+   * @returns {{code: number, content: any, rowsReturned: number}}
    */
-  function add (tableName, records) {
+  function find(tableName, filterCondition, orderBy, desc = false, limit) {
+    const filter = filterCondition || "TRUE";
+    let selector = `Filter(${tableName}, ${filter})`;
+
+    if (orderBy) {
+      const col = orderBy.startsWith("[") ? orderBy : `[${orderBy}]`;
+      const isAsc = desc ? "FALSE" : "TRUE"; // TRUE = ascending in AppSheet ORDERBY
+      selector = `OrderBy(${selector}, ${col}, ${isAsc})`;
+    }
+
+    if (typeof limit === "number" && limit > 0) {
+      selector = `Top(${selector}, ${limit})`;
+    }
+
+    return makeRequest({
+      table: tableName,
+      action: "Find",
+      selector: selector,
+    });
+  }
+
+  function add(tableName, records) {
     const normalized = normalizeRecords(records);
     return makeRequest({ table: tableName, action: "Add", rows: normalized });
   }
 
-   /**
-   * Updates one or more records in a table.
-   *
-   * @param {string} tableName - Name of the target table.
-   * @param {Object|Object[]} records - A record or array of records to update.
-   * @returns {{code: number, content: any, rowsReturned: number}} API response object.
-   */
-  function update (tableName, records) {
+  function update(tableName, records) {
     const normalized = normalizeRecords(records);
     return makeRequest({ table: tableName, action: "Edit", rows: normalized });
   }
 
-    /**
-   * Deletes one or more records from a table.
-   *
-   * @param {string} tableName - Name of the target table.
-   * @param {Object|Object[]} records - A record or array of records to delete.
-   * @returns {{code: number, content: any, rowsReturned: number}} API response object.
-   */
-  function deleteRows (tableName, records) {
+  function deleteRows(tableName, records) {
     const normalized = normalizeRecords(records);
     return makeRequest({ table: tableName, action: "Delete", rows: normalized });
   }
 
-    /**
-   * Finds a single record in a table by matching a specific key column.
-   *
-   * @param {string} tableName - Name of the table or slice to search.
-   * @param {string} keyColumn - The name of the key column to match.
-   * @param {string|number} keyValue - The value to search for.
-   * @returns {{code: number, content: Object|null, rowsReturned: number}} API response object with matching row.
-   */
-  function findByKey (tableName, keyColumn, keyValue) {
-    const result = findAll(tableName);
+  function findByKey(tableName, keyColumn, keyValue) {
+    const result = find(tableName, `[${keyColumn}] = "${keyValue}"`);
     if (result.code !== 200) return result;
-    const match = result.content.find(r => r[keyColumn] === keyValue);
-    return { ...result, content: match || null };
+    const match = result.content.length > 0 ? result.content[0] : null;
+    return { ...result, content: match, rowsReturned: match ? 1 : 0 };
   }
 
   return {
-    findAll,
+    find,
     findByKey,
     add,
     update,
@@ -136,3 +138,4 @@ const AppSheet = (() => {
     _config: CONFIG,
   };
 })();
+
