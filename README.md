@@ -3,13 +3,13 @@ Interface for easily working with AppsSheet API in Google Apps Script
 
 | Method  | Return type |
 | ------------- | ------------- |
-| `find(tableName, [filterCondition], [orderBy], [desc], [limit])`  | Object  |
-| `add(tableName, records)` | Object |
-| `update()` | Object |
+| [`find(tableName, [filterCondition], [orderBy], [desc], [limit])`]( #findtablename-filtercondition-orderby-desc-limit )  | Object  |
+| [`add(tableName, records)`](#add(tableName,-records)) | Object |
+| [`update()`](#parameters) | Object |
 | `delete()`  | Content Cell  |
 
 ### `find(tableName, [filterCondition], [orderBy], [desc], [limit])`
-Fetches all records from a table or slice.
+Fetches all records from a table or slice. Optionally applies a filter condition, ordering, and limit parameters. Filters, ordering, and limiting are performed server-side by AppSheet expresions and are always evaluated in that order; first by FILTER(), then ORDERBY(), then TOP()
 
 #### Parameters
 - `tableName` (`string`) - Required. The name of the table or slice to fetch records from.
@@ -20,9 +20,11 @@ Fetches all records from a table or slice.
 
 #### Returns (`object`)
 Returns an object with the following properties
-- `code` (`number`) The HTTP status code returned by the server
-- `content` (`object[]`) An array of objects representing the table rows
-- `rowsReturned` (`number`) The number of rows that were returned
+| Property name | Type | Description |
+|----|----|----|
+| `code` | `number` | The HTTP status code returned by the server |
+| `content` | `object[]` | An array of objects returned by the server.
+| `rowsReturned` | `number` | The number of rows that were returned |
 
 Example Return Value
 ```js
