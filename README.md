@@ -9,14 +9,18 @@ Interface for easily working with AppsSheet API in Google Apps Script
 | `delete()`  | Content Cell  |
 
 ### `find(tableName, [filterCondition], [orderBy], [desc], [limit])`
-Fetches all records from a table or slice. Optionally applies a filter condition, ordering, and limit parameters. Filters, ordering, and limiting are performed server-side by AppSheet expresions and are always evaluated in that order; first by FILTER(), then ORDERBY(), then TOP()
+Fetches all records from a table or slice. Optionally applies a filter condition, ordering, and limit parameters. Filters, ordering, and limiting are performed server-side by AppSheet expresions and are always evaluated in that order; first by `FILTER()`, then `ORDERBY()`, then `TOP()`
 
 #### Parameters
-- `tableName` (`string`) - Required. The name of the table or slice to fetch records from.
-- `filterCondition` (`string`) Optional. A condition that evaluates to true or false to determine which rows to include. If ommitted, all rows are returned. To omit filtering while accessing additional parameters, provide "TRUE" as the filterCondition to inlcude all rows.
-- `orderBy` (`string`) Optional. The name of the column to order the results by.
-- `desc` (`boolean`) Optional. Whether to enforce descending order (defaults to FALSE).
-- `limit` (`number`) Optional. The maximum number of rows to include.
+
+| Parameter name | Type | Description |
+|----|----|----|
+| `tableName` | `string` | Required. The name of the table or slice to find rows in. |
+| `filterCondition` | `string` | Optional. A condition that evaluates to `true` or `false` for each row.To omit filtering while accessing additional parameters, provide `"TRUE"` (upppercase string value). See [`FILTER()`](https://support.google.com/appsheet/answer/10108196?sjid=5454065892688843584-NC) for more information. | 
+| `orderBy` | `string` | Optional. The name of the column to order the results by |
+| `desc` | `booolean` | Optional. Whether to enforce descending order (defaults to `false`) |
+| `limit` | `number` | Optional. The maximum number of rows to include.
+
 
 #### Returns (`object`)
 Returns an object with the following properties
