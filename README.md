@@ -5,11 +5,16 @@ Interface for easily working with AppsSheet API in Google Apps Script
 | ------------- | ------------- |
 | [`find(tableName, [filterCondition], [orderBy], [desc], [limit])`]( #findtablename-filtercondition-orderby-desc-limit )  | Object  |
 | [`add(tableName, records)`](#add(tableName,-records)) | Object |
-| [`update()`](#parameters) | Object |
+| [`update()`](#update) | Object |
 | `delete()`  | Content Cell  |
 
+---
+
 ### `find(tableName, [filterCondition], [orderBy], [desc], [limit])`
-Fetches all records from a table or slice. Optionally applies a filter condition, ordering, and limit parameters. Filters, ordering, and limiting are performed server-side by AppSheet expresions and are always evaluated in that order; first by `FILTER()`, then `ORDERBY()`, then `TOP()`
+Fetches all records from a table or slice. Optionally applies a filter condition, ordering, and limit parameters. Filters, ordering, and limiting are performed server-side by AppSheet expresions.
+
+ℹ️ Expressions are always evaluated in the same order: first by `FILTER()` to filter the table rows, then `ORDERBY()` to sort the filtered rows, then `TOP()` to return the first `x` rows of the filtered, sorted data.
+
 
 #### Parameters
 
@@ -65,13 +70,17 @@ const data = AppSheet.find('users', "STARTSWITH([last_name],F)", "first_name", T
 const data = AppSheet.find('users', "STARTSWITH([last_name],F)", "first_name", TRUE, 10);
 
 ```
+---
 
 ### `add(tableName, records)`
 Adds one or more records to a table. The `records` parameter may be a single object or an array of objects.
 
 #### Parameters
-- `tableName` (`string`) Required. The name of the table to add records to.
-- `records` (`object` or `object[]`) Required. The object or array of objects that represent the rows to be added to the table.
+
+| Parameter name | Type | Description |
+|----|----|----|
+| `tableName` | `string` | Required. The name of the table to add records to. |
+| `records` | `object` or `object[]` | Required. The object or array of objects that represent the rows to be added to the table. |
 
 #### Returns (`object`)
 
